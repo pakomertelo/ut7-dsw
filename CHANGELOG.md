@@ -23,3 +23,9 @@
 - Corrección de `soap/server.php` para evitar salida no SOAP en peticiones POST.
 - Corrección de `soap/cliente.php` con mensajes más claros y URL de server para diagnóstico.
 - Mejora de mensajes cuando faltan extensiones o falla la conexión.
+
+- `aemet_proxy.php` ahora fuerza respuesta JSON válida en todos los casos.
+- Añadida acción de diagnóstico `accion=diagnostico` para revisar configuración básica.
+- Mejor manejo de respuestas no JSON y errores de AEMET.
+- Mejor visualización de errores en `datos.js` con extracto de respuesta.
+- Corrección de salida para predicciones de Canarias y Gran Canaria.

@@ -135,3 +135,13 @@ Si falla:
 - Abrir `aemet/prediccion_meteorologica.html`.
 - Pulsar los tres botones.
 - Si AEMET responde "No hay datos que satisfagan esos criterios", es una respuesta válida del servicio en ese momento y no implica que el código esté roto.
+
+
+## Problemas comunes de AEMET
+
+- Si el mapa devuelve "No hay datos que satisfagan esos criterios", es una respuesta temporal del servicio AEMET y no significa que el proyecto esté roto.
+- Si algo falla en frontend, probar `aemet/aemet_proxy.php?accion=diagnostico` para revisar estado básico del proxy.
+- `curl` debe estar activo en PHP.
+- `openssl` puede ser necesario según entorno.
+- La API key debe estar en `config/aemet_config.php`.
+- No pongas la API key en JavaScript ni en HTML.

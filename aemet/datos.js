@@ -32,7 +32,7 @@ function cargar(accion) {
             try {
                 data = JSON.parse(texto);
             } catch (e) {
-                mostrarError('El proxy no devolvió JSON válido.', texto.substring(0, 140));
+                mostrarError('El proxy no devolvió JSON válido.', texto.substring(0, 400));
                 return;
             }
 
