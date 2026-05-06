@@ -4,51 +4,47 @@ function limpiarYMostrarCarga() {
     resultado.innerHTML = '<p>Cargando...</p>';
 }
 
-function mostrarError() {
-    resultado.innerHTML = '<p class="error">Ha ocurrido un error al consultar AEMET.</p>';
+function pintarError(data) {
+    const detalle = data && data.detalle ? '<br><small>' + data.detalle + '</small>' : '';
+    const mensaje = data && data.error ? data.error : 'Ha ocurrido un error al consultar AEMET.';
+    resultado.innerHTML = '<p class="error">' + mensaje + detalle + '</p>';
+}
+
+function pintarRespuesta(data) {
+    if (!data.ok) {
+        pintarError(data);
+        return;
+    }
+
+    if (data.tipo === 'imagen') {
+        resultado.innerHTML = '<h3>' + data.titulo + '</h3><img src="' + data.datos + '" alt="Mapa" class="imagen-mapa">';
+        return;
+    }
+
+    if (data.tipo === 'texto') {
+        resultado.innerHTML = '<table><thead><tr><th>Título</th><th>Información</th></tr></thead><tbody><tr><td>' + data.titulo + '</td><td>' + data.datos + '</td></tr></tbody></table>';
+        return;
+    }
+
+    pintarError({ error: 'Formato de respuesta no válido' });
+}
+
+function cargar(accion) {
+    limpiarYMostrarCarga();
+    fetch('aemet_proxy.php?accion=' + accion)
+        .then(response => response.json())
+        .then(data => pintarRespuesta(data))
+        .catch(() => pintarError({ error: 'No se pudo contactar con el servidor.' }));
 }
 
 function cargarMapaIsobaras() {
-    limpiarYMostrarCarga();
-
-    fetch('aemet_proxy.php?accion=mapa')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.ok || !data.imagen) {
-                mostrarError();
-                return;
-            }
-            resultado.innerHTML = '<h3>Mapa de isobaras</h3><img src="' + data.imagen + '" alt="Mapa isobaras" class="imagen-mapa">';
-        })
-        .catch(() => mostrarError());
+    cargar('mapa');
 }
 
 function cargarInformacionCanarias() {
-    limpiarYMostrarCarga();
-
-    fetch('aemet_proxy.php?accion=canarias')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.ok || !data.texto) {
-                mostrarError();
-                return;
-            }
-            resultado.innerHTML = '<table><thead><tr><th>Zona</th><th>Predicción</th></tr></thead><tbody><tr><td>Canarias</td><td>' + data.texto + '</td></tr></tbody></table>';
-        })
-        .catch(() => mostrarError());
+    cargar('canarias');
 }
 
 function cargarInformacionGranCanaria() {
-    limpiarYMostrarCarga();
-
-    fetch('aemet_proxy.php?accion=gran_canaria')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.ok || !data.texto) {
-                mostrarError();
-                return;
-            }
-            resultado.innerHTML = '<table><thead><tr><th>Zona</th><th>Predicción</th></tr></thead><tbody><tr><td>Gran Canaria / Las Palmas</td><td>' + data.texto + '</td></tr></tbody></table>';
-        })
-        .catch(() => mostrarError());
+    cargar('gran_canaria');
 }

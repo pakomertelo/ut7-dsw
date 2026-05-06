@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/ModuloService.php';
 
-$options = ['uri' => 'http://localhost/ut7-dsw/soap'];
-$server = new SoapServer(null, $options);
+$server = new SoapServer(null, ['uri' => 'urn:ModuloService']);
 $server->setClass('ModuloService');
 $server->handle();

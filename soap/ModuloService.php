@@ -8,12 +8,27 @@ class ModuloService
     public function __construct()
     {
         global $pdo;
-        $this->pdo = $pdo;
+        $this->pdo = $pdo ?? null;
+    }
+
+    private function comprobarConexion()
+    {
+        if (!$this->pdo) {
+            return json_encode(['error' => 'No hay conexión con la base de datos'], JSON_UNESCAPED_UNICODE);
+        }
+
+        return null;
     }
 
     public function infoModulo($id)
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM modulos WHERE id = :id');
+        $errorConexion = $this->comprobarConexion();
+        if ($errorConexion) {
+            return $errorConexion;
+        }
+
+        $id = (int) $id;
+        $stmt = $this->pdo->prepare('SELECT id, curso_escolar, departamento, nivel, especialidad, nomenclatura_modulo, curso, numalumnos FROM modulos WHERE id = :id');
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $modulo = $stmt->fetch();
@@ -27,17 +42,23 @@ class ModuloService
 
     public function infoDepartamentos()
     {
-        $stmt = $this->pdo->query('SELECT DISTINCT departamento FROM modulos');
-        $departamentos = $stmt->fetchAll();
+        $errorConexion = $this->comprobarConexion();
+        if ($errorConexion) {
+            return $errorConexion;
+        }
 
-        return json_encode($departamentos, JSON_UNESCAPED_UNICODE);
+        $stmt = $this->pdo->query('SELECT DISTINCT departamento FROM modulos');
+        return json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
     }
 
     public function infoNomenclaturas()
     {
-        $stmt = $this->pdo->query('SELECT nomenclatura_modulo FROM modulos');
-        $nomenclaturas = $stmt->fetchAll();
+        $errorConexion = $this->comprobarConexion();
+        if ($errorConexion) {
+            return $errorConexion;
+        }
 
-        return json_encode($nomenclaturas, JSON_UNESCAPED_UNICODE);
+        $stmt = $this->pdo->query('SELECT nomenclatura_modulo FROM modulos');
+        return json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
     }
 }
