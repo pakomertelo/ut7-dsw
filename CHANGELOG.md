@@ -12,3 +12,8 @@
 - Ajuste de respuesta del proxy AEMET a formato `ok`, `tipo`, `datos`, `titulo`.
 - Corrección de cliente/servidor SOAP para usar el mismo `uri` y llamadas `__soapCall`.
 - Mejora de control de errores en SOAP para respuestas JSON inválidas o fallos de conexión.
+
+- Corrección de peticiones AEMET usando cURL reutilizable con control de estado, body y error.
+- Mejora de errores de AEMET con detalle técnico y estado HTTP cuando aplica.
+- Corrección y revisión de cliente/servidor SOAP con `uri` consistente y control de ausencia de extensión SOAP.
+- Mejora de mensajes cuando faltan extensiones PHP (SOAP/cURL/OpenSSL).

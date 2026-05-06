@@ -115,3 +115,9 @@ Si falla:
 2. Abrir Cliente SOAP y consultar un ID real de `modulos`.
 3. Abrir RSS y comprobar tabla con enlaces.
 4. Abrir AEMET y pulsar los tres botones para ver imagen o tabla.
+
+
+## Extensiones para AEMET
+
+- Activar `curl` y `openssl` en `php.ini`.
+- Si en local aparece error SSL (certificados en Windows/Apache), revisar el almacén de certificados o usar la configuración local indicada en el proxy solo para pruebas de práctica.

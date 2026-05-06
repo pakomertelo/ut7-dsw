@@ -5,6 +5,9 @@ $user = 'root';
 $password = '';
 $charset = 'utf8mb4';
 
+$pdo = null;
+$dbError = null;
+
 $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
 
 try {
@@ -13,5 +16,5 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } catch (PDOException $e) {
-    die('Error de conexión con la base de datos');
+    $dbError = 'Error de conexión con la base de datos';
 }
