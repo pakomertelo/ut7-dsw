@@ -1,31 +1,15 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
+ob_start();
 
 require_once __DIR__ . '/../config/aemet_config.php';
 
-$accion = $_GET['accion'] ?? '';
-$apiKey = defined('AEMET_API_KEY') ? trim((string) AEMET_API_KEY) : '';
-
-$endpoints = [
-    'mapa' => 'https://opendata.aemet.es/opendata/api/mapasygraficos/analisis',
-    'canarias' => 'https://opendata.aemet.es/opendata/api/prediccion/ccaa/hoy/coo',
-    'gran_canaria' => 'https://opendata.aemet.es/opendata/api/prediccion/provincia/manana/35'
-];
-
-$titulos = [
-    'mapa' => 'Mapa de isobaras',
-    'canarias' => 'Predicción Canarias',
-    'gran_canaria' => 'Predicción Gran Canaria / Las Palmas'
-];
-
-function respuestaError($error, $detalle = '', $status = null)
+function responder($array)
 {
-    echo json_encode([
-        'ok' => false,
-        'error' => $error,
-        'detalle' => $detalle,
-        'status' => $status
-    ], JSON_UNESCAPED_UNICODE);
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($array, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -66,12 +50,7 @@ function peticionAemet($url, $aceptaJson = true)
 
     curl_close($ch);
 
-    return [
-        'ok' => $body !== false,
-        'status' => $status,
-        'body' => $body,
-        'error' => $error
-    ];
+    return ['ok' => $body !== false, 'status' => $status, 'body' => $body, 'error' => $error];
 }
 
 function leerJsonSeguro($body, $status)
@@ -81,66 +60,88 @@ function leerJsonSeguro($body, $status)
         return [
             'ok' => false,
             'error' => 'Respuesta inicial no válida de AEMET',
-            'detalle' => 'HTTP ' . $status . ' | ' . substr(trim((string) $body), 0, 160)
+            'detalle' => 'HTTP ' . $status . ' | ' . substr(trim((string) $body), 0, 180)
         ];
     }
-
     return ['ok' => true, 'json' => $json];
 }
 
+$accion = $_GET['accion'] ?? '';
+$apiKey = defined('AEMET_API_KEY') ? trim((string) AEMET_API_KEY) : '';
+
+$endpoints = [
+    'mapa' => 'https://opendata.aemet.es/opendata/api/mapasygraficos/analisis',
+    'canarias' => 'https://opendata.aemet.es/opendata/api/prediccion/ccaa/hoy/coo',
+    'gran_canaria' => 'https://opendata.aemet.es/opendata/api/prediccion/provincia/manana/35'
+];
+
+$titulos = [
+    'mapa' => 'Mapa de isobaras',
+    'canarias' => 'Predicción Canarias',
+    'gran_canaria' => 'Predicción Gran Canaria / Las Palmas'
+];
+
 if (!isset($endpoints[$accion])) {
-    respuestaError('Acción no válida');
+    responder(['ok' => false, 'error' => 'Acción no válida', 'detalle' => '', 'status' => null]);
+}
+
+if (!function_exists('curl_init')) {
+    responder(['ok' => false, 'error' => 'La extensión cURL no está activada en PHP', 'detalle' => '', 'status' => null]);
 }
 
 if ($apiKey === '' || $apiKey === 'PON_AQUI_TU_API_KEY') {
-    respuestaError('Falta configurar la API key de AEMET');
+    responder(['ok' => false, 'error' => 'Falta configurar la API key de AEMET', 'detalle' => '', 'status' => null]);
 }
 
-$urlPrimera = anadirApiKey($endpoints[$accion], $apiKey);
-$primera = peticionAemet($urlPrimera, true);
+$primera = peticionAemet(anadirApiKey($endpoints[$accion], $apiKey), true);
 if (!$primera['ok']) {
-    respuestaError('Error en la primera petición a AEMET', $primera['error'], $primera['status']);
+    responder(['ok' => false, 'error' => 'Error en la primera petición a AEMET', 'detalle' => $primera['error'], 'status' => $primera['status']]);
 }
 
-$inicioJson = leerJsonSeguro($primera['body'], $primera['status']);
-if (!$inicioJson['ok']) {
-    respuestaError($inicioJson['error'], $inicioJson['detalle'], $primera['status']);
+if (trim((string) $primera['body']) === '') {
+    responder(['ok' => false, 'error' => 'Respuesta vacía de AEMET en la primera petición', 'detalle' => '', 'status' => $primera['status']]);
 }
 
-$data1 = $inicioJson['json'];
+$json1 = leerJsonSeguro($primera['body'], $primera['status']);
+if (!$json1['ok']) {
+    responder(['ok' => false, 'error' => $json1['error'], 'detalle' => $json1['detalle'], 'status' => $primera['status']]);
+}
+
+$data1 = $json1['json'];
 if (empty($data1['datos'])) {
-    respuestaError('AEMET no devolvió URL de datos', $data1['descripcion'] ?? 'Sin descripción', $primera['status']);
+    responder([
+        'ok' => false,
+        'error' => 'AEMET no devolvió datos para esta consulta',
+        'detalle' => $data1['descripcion'] ?? 'Sin detalle',
+        'status' => $primera['status']
+    ]);
 }
 
 $segunda = peticionAemet($data1['datos'], false);
 if (!$segunda['ok']) {
-    respuestaError('Error en la segunda petición a AEMET', $segunda['error'], $segunda['status']);
+    responder(['ok' => false, 'error' => 'Error en la segunda petición a AEMET', 'detalle' => $segunda['error'], 'status' => $segunda['status']]);
+}
+
+if (trim((string) $segunda['body']) === '') {
+    responder(['ok' => false, 'error' => 'La segunda respuesta de AEMET llegó vacía', 'detalle' => '', 'status' => $segunda['status']]);
 }
 
 if ($accion === 'mapa') {
-    $mapaJson = json_decode((string) $segunda['body'], true);
-    if (is_array($mapaJson) && isset($mapaJson[0]['imagen'])) {
-        echo json_encode(['ok' => true, 'tipo' => 'imagen', 'titulo' => $titulos[$accion], 'datos' => $mapaJson[0]['imagen']], JSON_UNESCAPED_UNICODE);
-        exit;
+    $mapa = json_decode((string) $segunda['body'], true);
+    if (is_array($mapa) && isset($mapa[0]['imagen'])) {
+        responder(['ok' => true, 'tipo' => 'imagen', 'titulo' => $titulos[$accion], 'datos' => $mapa[0]['imagen']]);
     }
-
-    if (filter_var($data1['datos'], FILTER_VALIDATE_URL)) {
-        echo json_encode(['ok' => true, 'tipo' => 'imagen', 'titulo' => $titulos[$accion], 'datos' => $data1['datos']], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-
-    respuestaError('No se pudo interpretar el mapa de isobaras', substr(trim((string) $segunda['body']), 0, 160), $segunda['status']);
+    responder(['ok' => true, 'tipo' => 'imagen', 'titulo' => $titulos[$accion], 'datos' => $data1['datos']]);
 }
 
-$predJson = json_decode((string) $segunda['body'], true);
-if (is_array($predJson) && isset($predJson[0]['prediccion']['texto'])) {
-    echo json_encode(['ok' => true, 'tipo' => 'texto', 'titulo' => $titulos[$accion], 'datos' => $predJson[0]['prediccion']['texto']], JSON_UNESCAPED_UNICODE);
-    exit;
+$prediccion = json_decode((string) $segunda['body'], true);
+if (is_array($prediccion) && isset($prediccion[0]['prediccion']['texto'])) {
+    responder(['ok' => true, 'tipo' => 'texto', 'titulo' => $titulos[$accion], 'datos' => $prediccion[0]['prediccion']['texto']]);
 }
 
-if (is_array($predJson) && isset($predJson[0]['elaborado'])) {
-    echo json_encode(['ok' => true, 'tipo' => 'texto', 'titulo' => $titulos[$accion], 'datos' => 'AEMET responde, pero no incluye texto resumido en este momento.'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-respuestaError('No se pudo obtener la predicción', substr(trim((string) $segunda['body']), 0, 160), $segunda['status']);
+responder([
+    'ok' => true,
+    'tipo' => 'texto',
+    'titulo' => $titulos[$accion],
+    'datos' => trim(strip_tags((string) $segunda['body']))
+]);

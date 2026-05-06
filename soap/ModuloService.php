@@ -30,6 +30,8 @@ class ModuloService
 
         if (is_array($id)) {
             $id = $id['id'] ?? reset($id);
+        } elseif (is_object($id) && isset($id->id)) {
+            $id = $id->id;
         }
 
         $id = (int) $id;
@@ -63,7 +65,7 @@ class ModuloService
             return $errorConexion;
         }
 
-        $stmt = $this->pdo->query('SELECT nomenclatura_modulo FROM modulos ORDER BY nomenclatura_modulo');
+        $stmt = $this->pdo->query('SELECT DISTINCT nomenclatura_modulo FROM modulos ORDER BY nomenclatura_modulo');
         return json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
     }
 }

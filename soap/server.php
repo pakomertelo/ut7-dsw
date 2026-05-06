@@ -6,6 +6,11 @@ if (!class_exists('SoapServer')) {
 
 require_once __DIR__ . '/ModuloService.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo 'Servidor SOAP activo. Este archivo debe ser consumido desde cliente.php.';
+    exit;
+}
+
 $server = new SoapServer(null, ['uri' => 'http://localhost/ut7-dsw/soap']);
 $server->setClass('ModuloService');
 $server->handle();

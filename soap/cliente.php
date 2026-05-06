@@ -4,47 +4,61 @@ $errorModulo = null;
 $departamentos = [];
 $nomenclaturas = [];
 $errorGeneral = null;
+$serverUrl = '';
 
 if (!class_exists('SoapClient')) {
     $errorGeneral = 'La extensión SOAP de PHP no está activada. Activa extension=soap en php.ini y reinicia Apache.';
 } else {
     $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-    $serverUrl = $protocolo . '://' . $_SERVER['HTTP_HOST'] . $base . '/server.php';
+    $carpeta = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    $serverUrl = $protocolo . '://' . $_SERVER['HTTP_HOST'] . $carpeta . '/server.php';
 
     try {
         $client = new SoapClient(null, [
             'location' => $serverUrl,
             'uri' => 'http://localhost/ut7-dsw/soap',
             'exceptions' => true,
-            'connection_timeout' => 15
+            'connection_timeout' => 15,
+            'cache_wsdl' => WSDL_CACHE_NONE
         ]);
 
         $jsonDepartamentos = $client->__soapCall('infoDepartamentos', []);
-        $departamentos = json_decode($jsonDepartamentos, true);
-        if (!is_array($departamentos)) {
-            $errorGeneral = 'El servicio no devolvió JSON válido en departamentos.';
-            $departamentos = [];
+        if (!$jsonDepartamentos) {
+            $errorGeneral = 'Respuesta vacía al pedir departamentos.';
+        } else {
+            $departamentos = json_decode($jsonDepartamentos, true);
+            if (!is_array($departamentos)) {
+                $errorGeneral = 'El servicio SOAP no devolvió JSON válido en departamentos.';
+                $departamentos = [];
+            }
         }
 
         $jsonNomenclaturas = $client->__soapCall('infoNomenclaturas', []);
-        $nomenclaturas = json_decode($jsonNomenclaturas, true);
-        if (!is_array($nomenclaturas)) {
-            $errorGeneral = 'El servicio no devolvió JSON válido en nomenclaturas.';
-            $nomenclaturas = [];
+        if (!$jsonNomenclaturas) {
+            $errorGeneral = 'Respuesta vacía al pedir nomenclaturas.';
+        } else {
+            $nomenclaturas = json_decode($jsonNomenclaturas, true);
+            if (!is_array($nomenclaturas)) {
+                $errorGeneral = 'El servicio SOAP no devolvió JSON válido en nomenclaturas.';
+                $nomenclaturas = [];
+            }
         }
 
         if (isset($_GET['id_modulo']) && $_GET['id_modulo'] !== '') {
             $idModulo = (int) $_GET['id_modulo'];
             $jsonModulo = $client->__soapCall('infoModulo', [$idModulo]);
-            $resultadoModulo = json_decode($jsonModulo, true);
 
-            if (!is_array($resultadoModulo)) {
-                $errorModulo = 'El servicio no devolvió JSON válido.';
-                $resultadoModulo = null;
-            } elseif (isset($resultadoModulo['error'])) {
-                $errorModulo = $resultadoModulo['error'];
-                $resultadoModulo = null;
+            if (!$jsonModulo) {
+                $errorModulo = 'Respuesta vacía al consultar módulo.';
+            } else {
+                $resultadoModulo = json_decode($jsonModulo, true);
+                if (!is_array($resultadoModulo)) {
+                    $errorModulo = 'El servicio SOAP no devolvió JSON válido.';
+                    $resultadoModulo = null;
+                } elseif (isset($resultadoModulo['error'])) {
+                    $errorModulo = $resultadoModulo['error'];
+                    $resultadoModulo = null;
+                }
             }
         }
     } catch (SoapFault $e) {
@@ -65,7 +79,10 @@ if (!class_exists('SoapClient')) {
     <h1>Cliente SOAP de Módulos</h1>
     <p><a href="../index.php">Volver al inicio</a></p>
 
-    <?php if ($errorGeneral): ?><p class="error"><?= htmlspecialchars($errorGeneral) ?></p><?php endif; ?>
+    <?php if ($errorGeneral): ?>
+        <p class="error"><?= htmlspecialchars($errorGeneral) ?></p>
+        <?php if ($serverUrl): ?><p>URL de server.php: <?= htmlspecialchars($serverUrl) ?></p><?php endif; ?>
+    <?php endif; ?>
 
     <section class="tarjeta">
         <h2>Consultar módulo por ID</h2>
@@ -74,7 +91,9 @@ if (!class_exists('SoapClient')) {
             <input type="number" name="id_modulo" id="id_modulo" min="1" value="<?= isset($_GET['id_modulo']) ? htmlspecialchars($_GET['id_modulo']) : '' ?>" required>
             <button type="submit">Consultar</button>
         </form>
+
         <?php if ($errorModulo): ?><p class="error"><?= htmlspecialchars($errorModulo) ?></p><?php endif; ?>
+
         <?php if ($resultadoModulo): ?>
             <table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>
             <?php foreach ($resultadoModulo as $campo => $valor): ?><tr><td><?= htmlspecialchars($campo) ?></td><td><?= htmlspecialchars((string) $valor) ?></td></tr><?php endforeach; ?>

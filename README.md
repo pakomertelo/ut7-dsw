@@ -121,3 +121,17 @@ Si falla:
 
 - Activar `curl` y `openssl` en `php.ini`.
 - Si en local aparece error SSL (certificados en Windows/Apache), revisar el almacén de certificados o usar la configuración local indicada en el proxy solo para pruebas de práctica.
+
+
+## Prueba rápida de SOAP
+
+- Abrir `http://localhost/ut7-dsw/soap/server.php` en navegador: debe mostrar mensaje de servidor activo.
+- Abrir `http://localhost/ut7-dsw/soap/cliente.php` y consultar un ID.
+- Si falla, revisar que `extension=soap` esté activa y que la URL de `server.php` mostrada en cliente sea correcta.
+
+## Prueba rápida de AEMET
+
+- Configurar API key en `config/aemet_config.php`.
+- Abrir `aemet/prediccion_meteorologica.html`.
+- Pulsar los tres botones.
+- Si AEMET responde "No hay datos que satisfagan esos criterios", es una respuesta válida del servicio en ese momento y no implica que el código esté roto.
