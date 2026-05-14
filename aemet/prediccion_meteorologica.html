@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción Meteorológica AEMET</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+<div class="contenedor">
+    <h1>Predicción meteorológica</h1>
+    <p><a href="../index.php">Volver al inicio</a></p>
+
+    <section class="tarjeta">
+        <h2>Consulta AEMET</h2>
+        <div class="botones">
+            <button onclick="cargarMapaIsobaras()">Mapa Isobaras</button>
+            <button onclick="cargarInformacionCanarias()">Información Canarias</button>
+            <button onclick="cargarInformacionGranCanaria()">Información Gran Canaria</button>
+        </div>
+        <div id="resultado" class="resultado"></div>
+    </section>
+</div>
+<script src="datos.js"></script>
+</body>
+</html>

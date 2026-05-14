@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #eef3f8;
+    color: #1f2a37;
+}
+
+.contenedor {
+    width: 90%;
+    max-width: 1000px;
+    margin: 30px auto;
+}
+
+h1, h2 {
+    color: #1f3c88;
+}
+
+.tarjeta {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+button,
+.boton-enlace {
+    background: #2e7dbe;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+button:hover,
+.boton-enlace:hover {
+    background: #225f92;
+}
+
+input {
+    padding: 8px;
+    margin-right: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+th,
+td {
+    border: 1px solid #d5dbe3;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: #dce9f9;
+}
+
+ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.error {
+    color: #b00020;
+    font-weight: bold;
+}
+
+.botones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.resultado {
+    margin-top: 16px;
+}
+
+.imagen-mapa {
+    max-width: 100%;
+    border: 1px solid #d5dbe3;
+    border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+    .contenedor {
+        width: 95%;
+    }
+
+    table,
+    thead,
+    tbody,
+    th,
+    td,
+    tr {
+        display: block;
+    }
+
+    th {
+        margin-top: 8px;
+    }
+}
